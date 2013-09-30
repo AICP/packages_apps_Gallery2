@@ -74,6 +74,13 @@ public class CameraSettings {
     public static final String KEY_PHOTOSPHERE_PICTURESIZE = "pref_photosphere_picturesize_key";
     public static final String KEY_STORAGE = "pref_camera_storage_key";
     public static final String KEY_VIDEOCAMERA_HDR = "pref_video_hdr_key";
+    public static final String KEY_SMART_CAPTURE_PHOTO = "pref_smart_capture_camera";
+    public static final String KEY_SMART_CAPTURE_VIDEO = "pref_smart_capture_video";
+    public static final String KEY_TRUE_VIEW = "pref_true_view";
+    public static final String KEY_CAMERA_JPEG = "pref_camera_jpeg_key";
+    public static final String KEY_VIDEO_JPEG = "pref_video_jpeg_key";
+    public static final String KEY_CAMERA_COLOR_EFFECT = "pref_camera_coloreffect_key";
+    public static final String KEY_VIDEO_COLOR_EFFECT = "pref_video_coloreffect_key";
 
     public static final String EXPOSURE_DEFAULT_VALUE = "0";
 
@@ -185,6 +192,8 @@ public class CameraSettings {
         ListPreference cameraHdr = group.findPreference(KEY_CAMERA_HDR);
         ListPreference storage = group.findPreference(KEY_STORAGE);
         ListPreference videoHdr = group.findPreference(KEY_VIDEOCAMERA_HDR);
+        ListPreference colorEffectCamera = group.findPreference(KEY_CAMERA_COLOR_EFFECT);
+        ListPreference colorEffectVideo = group.findPreference(KEY_VIDEO_COLOR_EFFECT);
 
         // Since the screen could be loaded from different resources, we need
         // to check if the preference is available here
@@ -249,7 +258,15 @@ public class CameraSettings {
         }
         if (videoHdr != null && !Util.isVideoHdrSupported(mParameters)) {
 	        removePreference(group, videoHdr.getKey());
-		}
+	}
+        if (colorEffectCamera != null) {
+            filterUnsupportedOptions(group,
+                    colorEffectCamera, mParameters.getSupportedColorEffects());
+        }
+        if (colorEffectVideo != null) {
+            filterUnsupportedOptions(group,
+                    colorEffectVideo, mParameters.getSupportedColorEffects());
+        }
     }
 
     private void buildStorage(PreferenceGroup group, ListPreference storage) {

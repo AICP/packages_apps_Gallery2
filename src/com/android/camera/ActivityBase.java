@@ -215,6 +215,23 @@ public abstract class ActivityBase extends AbstractGalleryActivity
         return false;
     }
 
+    protected boolean initSmartCapture(ComboPreferences prefs, boolean isVideo) {
+        return prefs.getString(isVideo
+            ? CameraSettings.KEY_SMART_CAPTURE_VIDEO
+            : CameraSettings.KEY_SMART_CAPTURE_PHOTO,
+            getResources().getString(R.string.setting_off_value))
+            .equals(getResources().getString(R.string.setting_on_value));
+    }
+
+    protected void setTrueView(SharedPreferences prefs) {
+        CameraScreenNail.mEnableAspectRatioClamping =
+                prefs.getString(CameraSettings.KEY_TRUE_VIEW,
+                getResources().getString(R.string.setting_off_value))
+                .equals(getResources().getString(R.string.setting_off_value));
+        ((CameraScreenNail) mCameraScreenNail).updateRenderSize();
+        notifyScreenNailChanged();
+    }
+
     protected boolean setStoragePath(SharedPreferences prefs) {
         String storagePath = prefs.getString(CameraSettings.KEY_STORAGE,
                 Environment.getExternalStorageDirectory().toString());

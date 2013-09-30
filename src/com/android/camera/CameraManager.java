@@ -242,7 +242,7 @@ public class CameraManager {
                         break;
 
                     case GET_PARAMETERS:
-                        if (mParametersIsDirty) {
+                        if (mParametersIsDirty && mCamera != null) {
                             mParameters = mCamera.getParameters();
                             mParametersIsDirty = false;
                         }
