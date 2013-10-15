@@ -1141,25 +1141,6 @@ public class VideoModule implements CameraModule,
             case KeyEvent.KEYCODE_MENU:
                 if (mMediaRecorderRecording) return true;
                 break;
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                if (mParameters.isZoomSupported()) {
-                    int value = mZoomValue + 1;
-                    int zoomMax = mParameters.getMaxZoom();
-                    if (value <= zoomMax) {
-                        onZoomChanged(value);
-                    }
-                    return true;
-                }
-                return false;
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (mParameters.isZoomSupported()) {
-                    int value = mZoomValue - 1;
-                    if (value >= 0) {
-                        onZoomChanged(value);
-                    }
-                    return true;
-                }
-                return false;
         }
         return false;
     }
@@ -1167,12 +1148,6 @@ public class VideoModule implements CameraModule,
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (mParameters.isZoomSupported()) {
-                    return true;
-                }
-                return false;
             case KeyEvent.KEYCODE_CAMERA:
                 mUI.pressShutter(false);
                 return true;
