@@ -57,6 +57,7 @@ public class TrimVideo extends Activity implements
 
     private int mTrimStartTime = 0;
     private int mTrimEndTime = 0;
+    private boolean mCheckTrimStartTime;
     private int mVideoPosition = 0;
     public static final String KEY_TRIM_START = "trim_start";
     public static final String KEY_TRIM_END = "trim_end";
@@ -178,7 +179,7 @@ public class TrimVideo extends Activity implements
         mVideoPosition = mVideoView.getCurrentPosition();
         // If the video position is smaller than the starting point of trimming,
         // correct it.
-        if (mVideoPosition < mTrimStartTime) {
+        if (mCheckTrimStartTime && (mVideoPosition < mTrimStartTime)) {
             mVideoView.seekTo(mTrimStartTime);
             if (mVideoPosition < mTrimStartTime) {
                 mTrimStartTime = mVideoPosition;
@@ -187,6 +188,7 @@ public class TrimVideo extends Activity implements
                 mVideoPosition = mTrimStartTime;
             }
         }
+        mCheckTrimStartTime = false;
         // If the position is bigger than the end point of trimming, show the
         // replay button and pause.
         if (mVideoPosition >= mTrimEndTime && mTrimEndTime > 0) {
@@ -210,6 +212,7 @@ public class TrimVideo extends Activity implements
 
     private void playVideo() {
         mVideoView.start();
+        mCheckTrimStartTime = true;
         mController.showPlaying();
         setProgress();
     }
