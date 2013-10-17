@@ -2008,6 +2008,8 @@ public class VideoModule implements CameraModule,
             mParameters.setColorEffect(colorEffect);
         }
 
+        Util.dumpParameters(mParameters);
+
         mActivity.mCameraDevice.setParameters(mParameters);
         // Keep preview size up to date.
         mParameters = mActivity.mCameraDevice.getParameters();
