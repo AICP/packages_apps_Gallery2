@@ -33,10 +33,6 @@ import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.location.Location;
 import android.media.CamcorderProfile;
 import android.media.CameraProfile;
@@ -80,8 +76,7 @@ public class VideoModule implements CameraModule,
     ShutterButton.OnShutterButtonListener,
     MediaRecorder.OnErrorListener,
     MediaRecorder.OnInfoListener,
-    EffectsRecorder.EffectsListener,
-    SensorEventListener {
+    EffectsRecorder.EffectsListener {
 
     private static final String TAG = "CAM_VideoModule";
 
@@ -197,9 +192,6 @@ public class VideoModule implements CameraModule,
 
     private int mVideoWidth;
     private int mVideoHeight;
-
-    private SensorManager mSensorManager;
-    private long mLastVid = 0;
 
     private StartPreviewThread mStartPreviewThread;
 
@@ -401,8 +393,6 @@ public class VideoModule implements CameraModule,
         mPrefVideoEffectDefault = mActivity.getString(R.string.pref_video_effect_default);
         resetEffect();
 
-        mSensorManager = (SensorManager)(mActivity.getSystemService(Context.SENSOR_SERVICE));
-
         /*
          * To reduce startup time, we start the preview in another thread.
          * We make sure the preview is started at the end of onCreate.
@@ -489,7 +479,7 @@ public class VideoModule implements CameraModule,
 
         if (!mMediaRecorderRecording) {
             // check for dismissing popup
-            mUI.dismissPopup();
+            mUI.dismissPopup(true);
             return;
         }
 
@@ -510,27 +500,6 @@ public class VideoModule implements CameraModule,
 
     @Override
     public void onStop() {}
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        int type = event.sensor.getType();
-        if (type == Sensor.TYPE_PROXIMITY) {
-            // Minimum 2 second timeout for start/stop record
-            // else it will crash the thread on low end devices
-            if ((SystemClock.uptimeMillis() - mLastVid) > 2000
-                && mActivity.mShowCameraAppView) {
-                int currentProx = (int) event.values[0];
-                if (currentProx == 0) {
-                    onShutterButtonClick();
-                    mLastVid = SystemClock.uptimeMillis();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
 
     private void loadCameraPreferences() {
         CameraSettings settings = new CameraSettings(mActivity, mParameters,
@@ -872,8 +841,6 @@ public class VideoModule implements CameraModule,
 
         UsageStatistics.onContentViewChanged(
                 UsageStatistics.COMPONENT_CAMERA, "VideoModule");
-
-        initSmartCapture();
     }
 
     private void setDisplayOrientation() {
@@ -960,7 +927,6 @@ public class VideoModule implements CameraModule,
 
     private void onPreviewStarted() {
         mUI.enableShutter(true);
-        mActivity.setTrueView(mPreferences);
         mHandler.sendEmptyMessage(START_PREVIEW_DONE);
     }
 
@@ -1090,7 +1056,6 @@ public class VideoModule implements CameraModule,
         mHandler.removeMessages(SWITCH_CAMERA_START_ANIMATION);
         mPendingSwitchCameraId = -1;
         mSwitchingCamera = false;
-        stopSmartCapture();
         // Call onPause after stopping video recording. So the camera can be
         // released as soon as possible.
     }
@@ -1112,9 +1077,10 @@ public class VideoModule implements CameraModule,
         if (mMediaRecorderRecording) {
             onStopVideoRecording();
             return true;
-        } else {
-            mUI.dismissPopup();
+        } else if (mUI.hidePieRenderer()) {
             return true;
+        } else {
+            return mUI.removeTopLevelPopup();
         }
     }
 
@@ -1205,28 +1171,6 @@ public class VideoModule implements CameraModule,
             mActivity.mCameraDevice.startPreviewAsync();
             mPreviewing = true;
             mMediaRecorder.setPreviewDisplay(mUI.getSurfaceHolder().getSurface());
-        }
-    }
-
-    private void initSmartCapture() {
-        if (mActivity.initSmartCapture(mPreferences, true)) {
-            startSmartCapture();
-        } else {
-            stopSmartCapture();
-        }
-    }
-
-    private void startSmartCapture() {
-        Sensor psensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        if (psensor != null) {
-            mSensorManager.registerListener(this, psensor, SensorManager.SENSOR_DELAY_UI);
-        }
-    }
-
-    private void stopSmartCapture() {
-        Sensor psensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        if (psensor != null) {
-            mSensorManager.unregisterListener(this, psensor);
         }
     }
 
@@ -1994,9 +1938,8 @@ public class VideoModule implements CameraModule,
         }
 
         // Set JPEG quality.
-        int jpegQuality = Integer.parseInt(mPreferences.getString(
-                CameraSettings.KEY_VIDEO_JPEG,
-                mActivity.getString(R.string.pref_jpeg_default)));
+        int jpegQuality = CameraProfile.getJpegEncodingQualityParameter(mCameraId,
+                CameraProfile.QUALITY_HIGH);
         mParameters.setJpegQuality(jpegQuality);
 
         // HDR
@@ -2006,16 +1949,6 @@ public class VideoModule implements CameraModule,
                     mActivity.getString(R.string.pref_video_hdr_default));
             mParameters.set(Util.VIDEO_HDR, videohdr);
         }
-
-        // Color effect
-        String colorEffect = mPreferences.getString(
-                CameraSettings.KEY_VIDEO_COLOR_EFFECT,
-                mActivity.getString(R.string.pref_coloreffect_default));
-        if (Util.isSupported(colorEffect, mParameters.getSupportedColorEffects())) {
-            mParameters.setColorEffect(colorEffect);
-        }
-
-        Util.dumpParameters(mParameters);
 
         mActivity.mCameraDevice.setParameters(mParameters);
         // Keep preview size up to date.
@@ -2190,8 +2123,6 @@ public class VideoModule implements CameraModule,
                 setCameraParameters();
             }
             mUI.updateOnScreenIndicators(mParameters, mPreferences);
-            mActivity.setTrueView(mPreferences);
-            initSmartCapture();
         }
     }
 
@@ -2219,7 +2150,6 @@ public class VideoModule implements CameraModule,
         initializeVideoSnapshot();
         resizeForPreviewAspectRatio();
         initializeVideoControl();
-        initSmartCapture();
 
         // From onResume
         mUI.initializeZoom(mParameters);
@@ -2476,6 +2406,7 @@ public class VideoModule implements CameraModule,
 
     @Override
     public void onShowSwitcherPopup() {
+        mUI.onShowSwitcherPopup();
     }
 
     @Override

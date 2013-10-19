@@ -572,7 +572,6 @@ public class PhotoModule
         mFocusManager.setMirror(mirror);
         mFocusManager.setParameters(mInitialParams);
         setupPreview();
-        initSmartCapture();
 
         openCameraCommon();
 
@@ -1402,8 +1401,6 @@ public class PhotoModule
         UsageStatistics.onContentViewChanged(
                 UsageStatistics.COMPONENT_CAMERA, "PhotoModule");
 
-        initSmartCapture();
-
         Sensor gsensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (gsensor != null) {
             mSensorManager.registerListener(this, gsensor, SensorManager.SENSOR_DELAY_NORMAL);
@@ -1440,8 +1437,6 @@ public class PhotoModule
         if (msensor != null) {
             mSensorManager.unregisterListener(this, msensor);
         }
-
-        stopSmartCapture();
     }
 
     @Override
@@ -1687,28 +1682,6 @@ public class PhotoModule
         startFaceDetection();
     }
 
-    private void initSmartCapture() {
-        if (mActivity.initSmartCapture(mPreferences, false)) {
-            startSmartCapture();
-        } else {
-            stopSmartCapture();
-        }
-    }
-
-    private void startSmartCapture() {
-        Sensor psensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        if (psensor != null) {
-            mSensorManager.registerListener(this, psensor, SensorManager.SENSOR_DELAY_UI);
-        }
-    }
-
-    private void stopSmartCapture() {
-        Sensor psensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        if (psensor != null) {
-            mSensorManager.unregisterListener(this, psensor);
-        }
-    }
-
     // This can be called by UI Thread or CameraStartUpThread. So this should
     // not modify the views.
     private void startPreview() {
@@ -1771,8 +1744,6 @@ public class PhotoModule
         if (mSnapshotOnIdle) {
             mHandler.post(mDoSnapRunnable);
         }
-
-        mActivity.setTrueView(mPreferences);
     }
 
     @Override
@@ -1928,21 +1899,12 @@ public class PhotoModule
         }
 
         // Set JPEG quality.
-        int jpegQuality = Integer.parseInt(mPreferences.getString(
-                CameraSettings.KEY_CAMERA_JPEG,
-                mActivity.getString(R.string.pref_jpeg_default)));
+        int jpegQuality = CameraProfile.getJpegEncodingQualityParameter(mCameraId,
+                CameraProfile.QUALITY_HIGH);
         mParameters.setJpegQuality(jpegQuality);
 
         // For the following settings, we need to check if the settings are
         // still supported by latest driver, if not, ignore the settings.
-
-        // Color effect
-        String colorEffect = mPreferences.getString(
-                CameraSettings.KEY_CAMERA_COLOR_EFFECT,
-                mActivity.getString(R.string.pref_coloreffect_default));
-        if (Util.isSupported(colorEffect, mParameters.getSupportedColorEffects())) {
-            mParameters.setColorEffect(colorEffect);
-        }
 
         // Set exposure compensation
         int value = CameraSettings.readExposure(mPreferences);
@@ -2106,8 +2068,6 @@ public class PhotoModule
 
         setCameraParametersWhenIdle(UPDATE_PARAM_PREFERENCE);
         mUI.updateOnScreenIndicators(mParameters, mPreferenceGroup, mPreferences);
-        mActivity.setTrueView(mPreferences);
-        initSmartCapture();
     }
 
     @Override
@@ -2255,19 +2215,6 @@ public class PhotoModule
             data = mGData;
         } else if (type == Sensor.TYPE_MAGNETIC_FIELD) {
             data = mMData;
-        } else if (type == Sensor.TYPE_PROXIMITY) {
-            if (mActivity.mShowCameraAppView) {
-                int currentProx = (int) event.values[0];
-                if (currentProx == 0) {
-                    if (mFirstTimeInitialized) {
-                        onShutterButtonFocus(true);
-                    }
-                    if (canTakePicture()) {
-                        onShutterButtonClick();
-                    }
-                }
-            }
-            return;
         } else {
             // we should not be here.
             return;

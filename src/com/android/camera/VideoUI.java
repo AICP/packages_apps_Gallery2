@@ -139,10 +139,18 @@ public class VideoUI implements SurfaceHolder.Callback, PieRenderer.PieListener,
     public boolean collapseCameraControls() {
         boolean ret = false;
         if (mPopup != null) {
-            dismissPopup();
+            dismissPopup(false);
             ret = true;
         }
         return ret;
+    }
+
+    public boolean removeTopLevelPopup() {
+        if (mPopup != null) {
+            dismissPopup(true);
+            return true;
+        }
+        return false;
     }
 
     public void enableCameraControls(boolean enable) {
@@ -289,11 +297,14 @@ public class VideoUI implements SurfaceHolder.Callback, PieRenderer.PieListener,
         mGestures.addTouchReceiver(mPopup);
     }
 
-    public void dismissPopup() {
-        dismissPopup(true);
+    public void dismissPopup(boolean topLevelOnly) {
+        dismissPopup(topLevelOnly, true);
     }
 
-    private void dismissPopup(boolean fullScreen) {
+    public void dismissPopup(boolean topLevelPopupOnly, boolean fullScreen) {
+        // In review mode, we do not want to bring up the camera UI
+        if (mController.isInReviewMode()) return;
+
         if (fullScreen) {
             mActivity.showUI();
             mBlocker.setVisibility(View.VISIBLE);
@@ -304,7 +315,19 @@ public class VideoUI implements SurfaceHolder.Callback, PieRenderer.PieListener,
             ((FrameLayout) mRootView).removeView(mPopup);
             mPopup = null;
         }
-        mVideoMenu.popupDismissed();
+        mVideoMenu.popupDismissed(topLevelPopupOnly);
+    }
+
+    public void onShowSwitcherPopup() {
+        hidePieRenderer();
+    }
+
+    public boolean hidePieRenderer() {
+        if (mPieRenderer != null && mPieRenderer.showsItems()) {
+            mPieRenderer.hide();
+            return true;
+        }
+        return false;
     }
 
     // disable preview gestures after shutter is pressed
@@ -322,7 +345,7 @@ public class VideoUI implements SurfaceHolder.Callback, PieRenderer.PieListener,
     // PieListener
     @Override
     public void onPieOpened(int centerX, int centerY) {
-        dismissPopup(true);
+        dismissPopup(false, true);
         mActivity.cancelActivityTouchHandling();
         mActivity.setSwipingEnabled(false);
     }
@@ -430,7 +453,7 @@ public class VideoUI implements SurfaceHolder.Callback, PieRenderer.PieListener,
             mGestures.setEnabled(full);
         }
         if (mPopup != null) {
-            dismissPopup(full);
+            dismissPopup(false, full);
         }
         if (mRenderOverlay != null) {
             // this can not happen in capture mode

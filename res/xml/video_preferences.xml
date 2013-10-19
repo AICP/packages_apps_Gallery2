@@ -17,42 +17,12 @@
 <PreferenceGroup
         xmlns:camera="http://schemas.android.com/apk/res/com.android.gallery3d"
         camera:title="@string/pref_camcorder_settings_category">
-    <IconListPreference
-            camera:key="pref_smart_capture_video"
-            camera:defaultValue="@string/pref_smart_capture_default"
-            camera:title="@string/pref_smart_capture_title"
-            camera:icons="@array/smart_capture_icons"
-            camera:largeIcons="@array/smart_capture_largeicons"
-            camera:entries="@array/pref_smart_capture_entries"
-            camera:entryValues="@array/pref_smart_capture_entryvalues"
-            camera:labelList="@array/pref_smart_capture_labels" />
-    <IconListPreference
-            camera:key="pref_true_view"
-            camera:defaultValue="@string/pref_true_view_default"
-            camera:title="@string/pref_true_view_title"
-            camera:icons="@array/true_view_icons"
-            camera:largeIcons="@array/true_view_largeicons"
-            camera:entries="@array/pref_true_view_entries"
-            camera:entryValues="@array/pref_true_view_entryvalues"
-            camera:labelList="@array/pref_true_view_labels" />
     <ListPreference
             camera:key="pref_video_quality_key"
             camera:defaultValue="@string/pref_video_quality_default"
             camera:title="@string/pref_video_quality_title"
             camera:entries="@array/pref_video_quality_entries"
             camera:entryValues="@array/pref_video_quality_entryvalues"/>
-    <ListPreference
-            camera:key="pref_video_coloreffect_key"
-            camera:defaultValue="@string/pref_coloreffect_default"
-            camera:title="@string/pref_coloreffect_title"
-            camera:entries="@array/pref_coloreffect_entries"
-            camera:entryValues="@array/pref_coloreffect_entryvalues" />
-    <ListPreference
-            camera:key="pref_video_jpeg_key"
-            camera:defaultValue="@string/pref_jpeg_default"
-            camera:title="@string/pref_jpeg_title"
-            camera:entries="@array/pref_jpeg_entries"
-            camera:entryValues="@array/pref_jpeg_entryvalues" />
     <ListPreference
             camera:key="pref_camera_storage_key"
             camera:title="@string/pref_camera_storage_title" />
@@ -104,7 +74,6 @@
             camera:icons="@array/camera_recordlocation_icons"
             camera:largeIcons="@array/camera_recordlocation_largeicons"
             camera:entries="@array/pref_camera_recordlocation_entries"
-            camera:labelList="@array/pref_camera_recordlocation_labels"
             camera:entryValues="@array/pref_camera_recordlocation_entryvalues" />
     <IconListPreference
             camera:key="pref_video_hdr_key"
