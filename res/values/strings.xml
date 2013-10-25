@@ -1172,4 +1172,8 @@ CHAR LIMIT = NONE] -->
 
     <!-- Video HDR default value -->
     <string name="pref_camera_video_hdr_default" translatable="false">off</string>
+
+    <!-- Red eye flash mode title -->
+    <string name="pref_camera_flashmode_entry_redeye">Red eye</string>
+    <string name="pref_camera_flashmode_label_redeye">RED EYE</string>
 </resources>
