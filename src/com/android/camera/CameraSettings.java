@@ -705,12 +705,6 @@ public class CameraSettings {
         }
     }
 
-    public static void setReducePurple(Parameters params, boolean on) {
-        if (params.get("reduce-purple") != null) {
-            params.set("reduce-purple", on ? "on" : "off");
-        }
-    }
-
     private void initVideoEffect(PreferenceGroup group, ListPreference videoEffect) {
         CharSequence[] values = videoEffect.getEntryValues();
 
