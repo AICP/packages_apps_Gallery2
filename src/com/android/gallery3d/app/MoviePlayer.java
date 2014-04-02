@@ -1344,6 +1344,7 @@ public class MoviePlayer implements
         private long mLastDisconnectTime;
         private boolean mIsShowDialog = false;
         private AlertDialog mServerTimeoutDialog;
+        private static final int DEFAULT_SERVER_TIMEOUT = 600000;
 
         // check whether disconnect from server timeout or not.
         // if timeout, return false. otherwise, return true.
@@ -1472,6 +1473,8 @@ public class MoviePlayer implements
                     Log.v(TAG, "get server timeout from metadata. mServerTimeout="
                             + mServerTimeout);
                 }
+            } else {
+                mServerTimeout = DEFAULT_SERVER_TIMEOUT;
             }
         }
 
